@@ -19,5 +19,5 @@ extension Int {
 }
 
 enum WorkingState {
-    case work, rest
+    case work, rest, pass
 }

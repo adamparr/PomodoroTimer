@@ -18,6 +18,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var stateLabel: UILabel!
     
     var timer = Timer()
+    var timerExpirationDate = NSDate()
     
     var workLength = 999
     var breakLength = 999
@@ -53,8 +54,7 @@ class ViewController: UIViewController {
             } else {
                 stateLabel.text = "Working!"
             }
-            
-            timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateCounter), userInfo: nil, repeats: true)
+            startTimer(for: .work)
             
         } else if startButton.titleLabel?.text == "GIVE UP" {
             startButton.setTitle("START", for: .normal)
@@ -133,6 +133,20 @@ class ViewController: UIViewController {
     }
     
     
+    func startTimer(for state: WorkingState) {
+        
+        if state == .work {
+            timerCountdown = workLength
+        } else if state == .rest {
+            timerCountdown = breakLength
+        }
+
+        timerExpirationDate = NSDate(timeIntervalSinceNow: TimeInterval(timerCountdown))
+        
+        timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(updateCounter), userInfo: nil, repeats: true)
+    }
+    
+    
     func takeABreak(_ cowardBreak: Bool = false) {
         
         onBreak = true
@@ -150,10 +164,10 @@ class ViewController: UIViewController {
         }
         
         ac.addAction(UIAlertAction(title: "Start break", style: .default) { [unowned self]_ in
-            self.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.updateCounter), userInfo: nil, repeats: true)
+            self.startTimer(for: .rest)
         })
         
-        presentNotification(for: .work)
+        presentNotification(for: .rest)
         
         present(ac, animated: true)
     }
@@ -167,14 +181,14 @@ class ViewController: UIViewController {
         let ac = UIAlertController(title: "Breaks up!", message: "You have worked for \(totalWorkTime.timeFormatted()) minutes today! Continue?", preferredStyle: .alert)
         
         ac.addAction(UIAlertAction(title: "Start working", style: .default) { [unowned self]_ in
-            self.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.updateCounter), userInfo: nil, repeats: true)
+            self.startTimer(for: .work)
         })
         
         ac.addAction(UIAlertAction(title: "That's enough", style: .default) { [unowned self]_ in
             self.presentFinishScreen()
         })
         
-        presentNotification(for: .rest)
+        presentNotification(for: .work)
         
         present(ac, animated: true)
     }
@@ -189,7 +203,7 @@ class ViewController: UIViewController {
         })
         
         ac.addAction(UIAlertAction(title: "No! I can do this!", style: .default) { [unowned self]_ in
-            self.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.updateCounter), userInfo: nil, repeats: true)
+            self.startTimer(for: .pass)
             self.startButton.setTitle("GIVE UP", for: .normal)
         })
         
